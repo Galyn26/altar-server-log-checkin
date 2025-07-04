@@ -14,6 +14,7 @@ import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Service session operations
@@ -44,6 +45,11 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -86,10 +92,10 @@ export class DatabaseStorage implements IStorage {
 
   // Helper function to verify if location is near church
   private verifyChurchLocation(latitude: number, longitude: number): boolean {
-    // TODO: Update these coordinates to your actual church location
-    // You can get these from Google Maps by right-clicking on your church location
-    const CHURCH_LAT = 40.7128; // Example: NYC coordinates - REPLACE WITH YOUR CHURCH
-    const CHURCH_LNG = -74.0060; // Example: NYC coordinates - REPLACE WITH YOUR CHURCH
+    // Saint Catherine of Siena Catholic Church coordinates
+    // 9200 SW 107th Ave, Miami, FL 33176
+    const CHURCH_LAT = 25.68222;
+    const CHURCH_LNG = -80.36861;
     const MAX_DISTANCE_METERS = 100; // 100 meter radius - adjust as needed
 
     const distance = this.calculateDistance(latitude, longitude, CHURCH_LAT, CHURCH_LNG);

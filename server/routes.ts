@@ -190,6 +190,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Make user a moderator endpoint (protected - current moderators only)
+  app.post('/api/moderator/grant/:userId', isAuthenticated, isModerator, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const updatedUser = await storage.updateUserRole(userId, 'moderator');
+      res.json({ message: 'User granted moderator access', user: updatedUser });
+    } catch (error) {
+      console.error('Error granting moderator access:', error);
+      res.status(500).json({ message: 'Failed to grant moderator access' });
+    }
+  });
+
   app.get('/api/moderator/export', isAuthenticated, isModerator, async (req: any, res) => {
     try {
       const sessions = await storage.getAllServiceSessions(1000);

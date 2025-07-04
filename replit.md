@@ -47,6 +47,7 @@ This is a full-stack web application for tracking altar server check-ins and ser
 - **Statistics Dashboard**: Overall system statistics and usage metrics
 - **Data Export**: CSV export of all service logs for record keeping
 - **Access Control**: Protected routes requiring moderator privileges
+- **Setup Process**: First moderator must be manually created via database query
 
 ### Geolocation Tracking
 - **Location Verification**: Browser geolocation API integration for clock-in
