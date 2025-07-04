@@ -43,6 +43,9 @@ export const serviceSessions = pgTable("service_sessions", {
   serviceType: varchar("service_type").default("General Service"),
   duration: integer("duration_minutes"), // calculated in minutes
   isActive: boolean("is_active").default(true),
+  clockInLatitude: varchar("clock_in_latitude"),
+  clockInLongitude: varchar("clock_in_longitude"),
+  clockInLocationVerified: boolean("clock_in_location_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -50,6 +53,8 @@ export const serviceSessions = pgTable("service_sessions", {
 export const insertServiceSessionSchema = createInsertSchema(serviceSessions).pick({
   userId: true,
   serviceType: true,
+  clockInLatitude: true,
+  clockInLongitude: true,
 });
 
 export const updateServiceSessionSchema = createInsertSchema(serviceSessions).pick({

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Church, Clock, Timer, Play, StopCircle, User, LogOut, Shield } from "lucide-react";
+import { Church, Clock, Timer, Play, StopCircle, User, LogOut, Shield, MapPin } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
 
@@ -48,6 +49,7 @@ export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { getCurrentPosition, isLoading: locationLoading, error: locationError } = useGeolocation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update current time every minute
@@ -94,15 +96,27 @@ export default function Home() {
   // Clock in mutation
   const clockInMutation = useMutation({
     mutationFn: async (serviceType: string = "General Service") => {
-      await apiRequest("POST", "/api/sessions/clock-in", { serviceType });
+      // Get current location before clocking in
+      const position = await getCurrentPosition();
+      
+      const response = await apiRequest("POST", "/api/sessions/clock-in", { 
+        serviceType,
+        latitude: position.latitude,
+        longitude: position.longitude
+      });
+      
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions/current"] });
       queryClient.invalidateQueries({ queryKey: ["/api/sessions/history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/sessions/stats"] });
+      
+      // Show location verification result
       toast({
         title: "Success!",
-        description: "You have successfully clocked in. Your service time is now being tracked.",
+        description: data.locationMessage || "You have successfully clocked in. Your service time is now being tracked.",
+        variant: data.clockInLocationVerified ? "default" : "destructive",
       });
     },
     onError: (error) => {
@@ -283,11 +297,20 @@ export default function Home() {
                     ) : (
                       <Button
                         onClick={() => clockInMutation.mutate("General Service")}
-                        disabled={clockInMutation.isPending}
+                        disabled={clockInMutation.isPending || locationLoading}
                         className="flex items-center justify-center py-4 px-6 bg-green-600 hover:bg-green-700 text-white font-medium"
                       >
-                        <Play className="mr-2 h-5 w-5" />
-                        {clockInMutation.isPending ? 'Clocking In...' : 'Clock In'}
+                        {locationLoading ? (
+                          <>
+                            <MapPin className="mr-2 h-5 w-5 animate-pulse" />
+                            Getting Location...
+                          </>
+                        ) : (
+                          <>
+                            <Play className="mr-2 h-5 w-5" />
+                            {clockInMutation.isPending ? 'Clocking In...' : 'Clock In'}
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>

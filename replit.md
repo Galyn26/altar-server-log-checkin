@@ -48,6 +48,13 @@ This is a full-stack web application for tracking altar server check-ins and ser
 - **Data Export**: CSV export of all service logs for record keeping
 - **Access Control**: Protected routes requiring moderator privileges
 
+### Geolocation Tracking
+- **Location Verification**: Browser geolocation API integration for clock-in
+- **Church Proximity Check**: Haversine formula distance calculation
+- **Location Status**: Visual indicators for verified/unverified locations
+- **GPS Data Storage**: Latitude/longitude coordinates stored with sessions
+- **Configuration**: Church coordinates configurable in server/storage.ts
+
 ### UI Components
 - **Landing Page**: Simple authentication entry point
 - **Dashboard**: Main interface showing current status and statistics
@@ -105,6 +112,7 @@ This is a full-stack web application for tracking altar server check-ins and ser
 Changelog:
 - July 04, 2025. Initial setup with basic check-in/out functionality
 - July 04, 2025. Added moderator accounts with oversight capabilities
+- July 04, 2025. Implemented geolocation tracking for location verification
 ```
 
 ## User Preferences

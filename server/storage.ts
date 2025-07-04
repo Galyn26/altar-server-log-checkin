@@ -64,14 +64,52 @@ export class DatabaseStorage implements IStorage {
 
   // Service session operations
   async createServiceSession(session: InsertServiceSession): Promise<ServiceSession> {
+    // Verify location if coordinates provided
+    let locationVerified = false;
+    if (session.clockInLatitude && session.clockInLongitude) {
+      locationVerified = this.verifyChurchLocation(
+        parseFloat(session.clockInLatitude),
+        parseFloat(session.clockInLongitude)
+      );
+    }
+
     const [serviceSession] = await db
       .insert(serviceSessions)
       .values({
         ...session,
         clockInTime: new Date(),
+        clockInLocationVerified: locationVerified,
       })
       .returning();
     return serviceSession;
+  }
+
+  // Helper function to verify if location is near church
+  private verifyChurchLocation(latitude: number, longitude: number): boolean {
+    // TODO: Update these coordinates to your actual church location
+    // You can get these from Google Maps by right-clicking on your church location
+    const CHURCH_LAT = 40.7128; // Example: NYC coordinates - REPLACE WITH YOUR CHURCH
+    const CHURCH_LNG = -74.0060; // Example: NYC coordinates - REPLACE WITH YOUR CHURCH
+    const MAX_DISTANCE_METERS = 100; // 100 meter radius - adjust as needed
+
+    const distance = this.calculateDistance(latitude, longitude, CHURCH_LAT, CHURCH_LNG);
+    return distance <= MAX_DISTANCE_METERS;
+  }
+
+  // Calculate distance between two coordinates using Haversine formula
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lng2-lng1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; // Distance in meters
   }
 
   async updateServiceSession(id: number, updates: UpdateServiceSession): Promise<ServiceSession> {

@@ -32,13 +32,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "You are already clocked in" });
       }
 
+      // Require location data for clock-in
+      if (!req.body.latitude || !req.body.longitude) {
+        return res.status(400).json({ 
+          message: "Location data is required for check-in. Please enable location services." 
+        });
+      }
+
       const validatedData = insertServiceSessionSchema.parse({
         userId,
         serviceType: req.body.serviceType || "General Service",
+        clockInLatitude: req.body.latitude.toString(),
+        clockInLongitude: req.body.longitude.toString(),
       });
 
       const session = await storage.createServiceSession(validatedData);
-      res.json(session);
+      
+      // Add location verification result to response
+      res.json({
+        ...session,
+        locationMessage: session.clockInLocationVerified 
+          ? "Location verified - you are at the church premises" 
+          : "Warning: Location not verified - you may not be at the church"
+      });
     } catch (error) {
       console.error("Error clocking in:", error);
       if (error instanceof z.ZodError) {
@@ -180,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await storage.getAllUsers();
       
       // Create CSV content
-      const csvHeaders = 'User ID,User Name,Email,Service Type,Clock In Time,Clock Out Time,Duration (minutes),Status,Date\n';
+      const csvHeaders = 'User ID,User Name,Email,Service Type,Clock In Time,Clock Out Time,Duration (minutes),Location Verified,Latitude,Longitude,Status,Date\n';
       const csvRows = sessions.map(session => {
         const user = users.find(u => u.id === session.userId);
         const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Unknown';
@@ -189,8 +205,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const duration = session.duration || 0;
         const status = session.isActive ? 'Active' : 'Completed';
         const date = new Date(session.clockInTime).toDateString();
+        const locationVerified = session.clockInLocationVerified ? 'Yes' : 'No';
+        const latitude = session.clockInLatitude || 'N/A';
+        const longitude = session.clockInLongitude || 'N/A';
         
-        return `"${session.userId}","${userName}","${user?.email || 'N/A'}","${session.serviceType}","${clockInTime}","${clockOutTime}","${duration}","${status}","${date}"`;
+        return `"${session.userId}","${userName}","${user?.email || 'N/A'}","${session.serviceType}","${clockInTime}","${clockOutTime}","${duration}","${locationVerified}","${latitude}","${longitude}","${status}","${date}"`;
       }).join('\n');
       
       const csvContent = csvHeaders + csvRows;

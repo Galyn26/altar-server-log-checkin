@@ -377,6 +377,7 @@ export default function Moderator() {
                         <TableHead>Clock In</TableHead>
                         <TableHead>Clock Out</TableHead>
                         <TableHead>Duration</TableHead>
+                        <TableHead>Location</TableHead>
                         <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -396,6 +397,17 @@ export default function Moderator() {
                           </TableCell>
                           <TableCell>
                             {session.duration ? formatDuration(session.duration) : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {(session as any).clockInLocationVerified !== undefined ? (
+                              <Badge variant={(session as any).clockInLocationVerified ? 'default' : 'destructive'}>
+                                {(session as any).clockInLocationVerified ? 'Verified' : 'Not Verified'}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                No Data
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge variant={session.isActive ? 'default' : 'secondary'}>
