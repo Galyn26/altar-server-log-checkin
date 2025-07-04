@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
-import { insertServiceSessionSchema } from "@shared/schema";
+import { insertServiceSessionSchema, updateUserRoleSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -104,6 +104,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Middleware to check if user is moderator
+  const isModerator = async (req: any, res: any, next: any) => {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || user.role !== 'moderator') {
+      return res.status(403).json({ message: "Moderator access required" });
+    }
+    
+    next();
+  };
+
+  // Moderator routes
+  app.get('/api/moderator/users', isAuthenticated, isModerator, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get('/api/moderator/sessions', isAuthenticated, isModerator, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const sessions = await storage.getAllServiceSessions(limit);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching all sessions:", error);
+      res.status(500).json({ message: "Failed to fetch sessions" });
+    }
+  });
+
+  app.get('/api/moderator/stats', isAuthenticated, isModerator, async (req: any, res) => {
+    try {
+      const stats = await storage.getOverallStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching overall stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  app.put('/api/moderator/users/:userId/role', isAuthenticated, isModerator, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      const validatedData = updateUserRoleSchema.parse(req.body);
+      
+      const user = await storage.updateUserRole(userId, validatedData.role!);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request data" });
+      }
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  app.get('/api/moderator/export', isAuthenticated, isModerator, async (req: any, res) => {
+    try {
+      const sessions = await storage.getAllServiceSessions(1000);
+      const users = await storage.getAllUsers();
+      
+      // Create CSV content
+      const csvHeaders = 'User ID,User Name,Email,Service Type,Clock In Time,Clock Out Time,Duration (minutes),Status,Date\n';
+      const csvRows = sessions.map(session => {
+        const user = users.find(u => u.id === session.userId);
+        const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Unknown';
+        const clockInTime = new Date(session.clockInTime).toISOString();
+        const clockOutTime = session.clockOutTime ? new Date(session.clockOutTime).toISOString() : 'N/A';
+        const duration = session.duration || 0;
+        const status = session.isActive ? 'Active' : 'Completed';
+        const date = new Date(session.clockInTime).toDateString();
+        
+        return `"${session.userId}","${userName}","${user?.email || 'N/A'}","${session.serviceType}","${clockInTime}","${clockOutTime}","${duration}","${status}","${date}"`;
+      }).join('\n');
+      
+      const csvContent = csvHeaders + csvRows;
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=altar_server_logs.csv');
+      res.send(csvContent);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      res.status(500).json({ message: "Failed to export data" });
     }
   });
 

@@ -28,9 +28,10 @@ This is a full-stack web application for tracking altar server check-ins and ser
 - **Session Storage**: PostgreSQL with connect-pg-simple
 - **Protected Routes**: Middleware-based authentication checks
 - **User Management**: Automatic user creation/update on login
+- **Role-Based Access**: Support for 'server' and 'moderator' user roles
 
 ### Database Schema
-- **Users Table**: Stores user profile information from Replit Auth
+- **Users Table**: Stores user profile information from Replit Auth with role column
 - **Service Sessions Table**: Tracks clock-in/out times and service details
 - **Sessions Table**: Stores Express session data
 
@@ -40,10 +41,18 @@ This is a full-stack web application for tracking altar server check-ins and ser
 - **Statistics**: Weekly and monthly service hour summaries
 - **Service Types**: Categorization of different service types
 
+### Moderator Features
+- **User Management**: View all users and update user roles
+- **Service Oversight**: View all service sessions across users
+- **Statistics Dashboard**: Overall system statistics and usage metrics
+- **Data Export**: CSV export of all service logs for record keeping
+- **Access Control**: Protected routes requiring moderator privileges
+
 ### UI Components
 - **Landing Page**: Simple authentication entry point
 - **Dashboard**: Main interface showing current status and statistics
 - **Service History**: List of past service sessions
+- **Moderator Dashboard**: Administrative interface for oversight
 - **Real-time Updates**: Live duration tracking for active sessions
 
 ## Data Flow
@@ -94,7 +103,8 @@ This is a full-stack web application for tracking altar server check-ins and ser
 
 ```
 Changelog:
-- July 04, 2025. Initial setup
+- July 04, 2025. Initial setup with basic check-in/out functionality
+- July 04, 2025. Added moderator accounts with oversight capabilities
 ```
 
 ## User Preferences

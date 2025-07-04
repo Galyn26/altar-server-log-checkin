@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Church, Clock, Timer, Play, StopCircle, User, LogOut } from "lucide-react";
+import { Church, Clock, Timer, Play, StopCircle, User, LogOut, Shield } from "lucide-react";
+import { Link } from "wouter";
 import { format } from "date-fns";
 
 interface ServiceSession {
@@ -180,9 +181,21 @@ export default function Home() {
               <div className="hidden sm:block">
                 <span className="text-sm text-gray-600">Welcome back, </span>
                 <span className="text-sm font-medium text-gray-900">
-                  {user.firstName || user.email}
+                  {(user as any).firstName || (user as any).email}
                 </span>
               </div>
+              {(user as any)?.role === 'moderator' && (
+                <Link href="/moderator">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center"
+                  >
+                    <Shield className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Moderator</span>
+                  </Button>
+                </Link>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -269,7 +282,7 @@ export default function Home() {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() => clockInMutation.mutate()}
+                        onClick={() => clockInMutation.mutate("General Service")}
                         disabled={clockInMutation.isPending}
                         className="flex items-center justify-center py-4 px-6 bg-green-600 hover:bg-green-700 text-white font-medium"
                       >

@@ -29,6 +29,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role").default("server").notNull(), // 'server' or 'moderator'
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -57,8 +58,13 @@ export const updateServiceSessionSchema = createInsertSchema(serviceSessions).pi
   isActive: true,
 });
 
+export const updateUserRoleSchema = z.object({
+  role: z.enum(['server', 'moderator']),
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type ServiceSession = typeof serviceSessions.$inferSelect;
 export type InsertServiceSession = z.infer<typeof insertServiceSessionSchema>;
 export type UpdateServiceSession = z.infer<typeof updateServiceSessionSchema>;
+export type UpdateUserRole = z.infer<typeof updateUserRoleSchema>;
