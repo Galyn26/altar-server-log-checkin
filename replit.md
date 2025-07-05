@@ -103,9 +103,19 @@ This is a full-stack web application for tracking altar server check-ins and ser
 
 ### Production Setup
 - Node.js runtime environment
-- PostgreSQL database (Neon serverless)
+- PostgreSQL database (Neon serverless or Render PostgreSQL)
 - Static file serving for frontend assets
 - Session persistence in database
+- Render deployment with automated builds
+
+### Deployment Structure
+- **README.md** - Project overview and setup instructions
+- **DEPLOYMENT.md** - Comprehensive deployment guide for Render
+- **MODERATOR_SETUP.md** - First moderator setup instructions
+- **render.yaml** - Render deployment configuration
+- **.env.example** - Environment variables template
+- **setup.sh** - Automated setup script
+- **LICENSE** - MIT license for the project
 
 ## Changelog
 

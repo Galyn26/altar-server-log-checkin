@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: altar-server-checkin
+    runtime: node
+    plan: free
+    region: ohio
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: altar-server-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: REPLIT_DOMAINS
+        sync: false
+      - key: ISSUER_URL
+        value: https://replit.com/oidc
+      - key: REPL_ID
+        sync: false
+
+databases:
+  - name: altar-server-db
+    databaseName: altar_server_checkin
+    plan: free
+    region: ohio
