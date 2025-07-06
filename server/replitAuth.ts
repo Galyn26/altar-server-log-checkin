@@ -36,7 +36,7 @@ export function getSession() {
     rejectUnauthorized: false,
   },
 },
-createTableIfMissing: false,
+createTableIfMissing: true,
 ttl: sessionTtl,
 tableName: "sessions",
 });
