@@ -207,6 +207,12 @@ If you want a custom domain:
 - Review build logs for specific errors
 - Try the custom build script: `node build.js`
 
+**Runtime failures:**
+- **TypeError with `{ cause }` error**: This happens with older Node.js versions. Ensure you're using Node.js 18+
+- **"Cannot find module" errors**: Make sure the build completed successfully and `dist/` folder exists
+- **Database connection errors**: Verify `DATABASE_URL` environment variable is set correctly
+- **Port binding errors**: Use the start command: `node dist/index.js` instead of `npm start`
+
 ### Getting Help
 
 1. Check Render logs for error messages
