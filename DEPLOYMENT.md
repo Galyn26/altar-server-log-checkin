@@ -84,8 +84,12 @@ git push -u origin main
 - **Region**: Ohio (US East)
 - **Branch**: `main`
 - **Runtime**: `Node`
-- **Build Command**: `npm run build`
+- **Build Command**: `npm install && node build.js`
 - **Start Command**: `npm start`
+
+**Alternative Build Commands (if build.js fails):**
+- Option 1: `npm install --include=dev && npm run build`
+- Option 2: `npm ci && npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist`
 
 **Advanced Settings:**
 - **Auto-Deploy**: Yes
@@ -196,9 +200,12 @@ If you want a custom domain:
 - Test with mobile device at church location
 
 **Build failures:**
+- **"vite: not found" error**: Try alternative build command: `npm install --include=dev && npm run build`
+- **Missing devDependencies**: Use: `npm ci && npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist`
 - Check all dependencies are in `package.json`
 - Verify build command is correct
 - Review build logs for specific errors
+- Try the custom build script: `node build.js`
 
 ### Getting Help
 
