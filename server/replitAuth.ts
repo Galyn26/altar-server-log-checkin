@@ -1,3 +1,49 @@
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+
+export async function setupAuth(app: Express) {
+  app.set("trust proxy", 1);
+  app.use(getSession());
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  passport.use(new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      callbackURL: "https://altar-server-checkin.onrender.com/api/callback"
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      // Save user info to session or DB if needed
+      const user = {
+        id: profile.id,
+        displayName: profile.displayName,
+        email: profile.emails?.[0].value,
+        photo: profile.photos?.[0].value,
+      };
+      return done(null, user);
+    }
+  ));
+
+  passport.serializeUser((user: any, done) => done(null, user));
+  passport.deserializeUser((obj: any, done) => done(null, obj));
+
+  app.get("/api/login", passport.authenticate("google", {
+    scope: ["profile", "email"]
+  }));
+
+  app.get("/api/callback",
+    passport.authenticate("google", {
+      failureRedirect: "/",
+      successRedirect: "/",
+    })
+  );
+
+  app.get("/api/logout", (req, res) => {
+    req.logout(() => {
+      res.redirect("/");
+    });
+  });
+}
 
 import passport from "passport";
 import session from "express-session";
